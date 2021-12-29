@@ -3307,22 +3307,22 @@ public final class FeedOuterClass {
       if (!senderId_.isEmpty()) {
         output.writeBytes(1, senderId_);
       }
-      if (!getSenderIdBase58Bytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(senderIdBase58_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, senderIdBase58_);
       }
       if (!messageId_.isEmpty()) {
         output.writeBytes(3, messageId_);
       }
-      if (!getMessageIdBase58Bytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(messageIdBase58_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 4, messageIdBase58_);
       }
-      if (!getTimeSentBytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(timeSent_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 5, timeSent_);
       }
-      if (!getTimeReceivedBytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(timeReceived_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 6, timeReceived_);
       }
-      if (!getContentBytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(content_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 7, content_);
       }
       if (index_ != 0L) {
@@ -3341,23 +3341,23 @@ public final class FeedOuterClass {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(1, senderId_);
       }
-      if (!getSenderIdBase58Bytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(senderIdBase58_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, senderIdBase58_);
       }
       if (!messageId_.isEmpty()) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(3, messageId_);
       }
-      if (!getMessageIdBase58Bytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(messageIdBase58_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, messageIdBase58_);
       }
-      if (!getTimeSentBytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(timeSent_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, timeSent_);
       }
-      if (!getTimeReceivedBytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(timeReceived_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, timeReceived_);
       }
-      if (!getContentBytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(content_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, content_);
       }
       if (index_ != 0L) {
@@ -4443,7 +4443,7 @@ public final class FeedOuterClass {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (!getContentBytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(content_)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, content_);
       }
       unknownFields.writeTo(output);
@@ -4455,7 +4455,7 @@ public final class FeedOuterClass {
       if (size != -1) return size;
 
       size = 0;
-      if (!getContentBytes().isEmpty()) {
+      if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(content_)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, content_);
       }
       size += unknownFields.getSerializedSize();

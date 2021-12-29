@@ -5,4 +5,6 @@ node/user_accounts.proto
 router/users.proto
 router/router.proto
 services/feed/feed.proto
+services/chat/chat.proto
 connections/ble/manager/ble.proto
+services/messaging/messaging.proto
