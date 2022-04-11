@@ -146,13 +146,19 @@ impl ConnectionTable {
                     return;
                 }
 
+                //last_update is updating only in case of neighbor node
+                let mut last_update = SystemTime::UNIX_EPOCH.checked_add(Duration::from_secs(entry.last_update)).unwrap();
+                if hc > 1{
+                    last_update = SystemTime::now();
+                }
+
                 // fill structure
                 let neighbour = NeighbourEntry {
                     id: neighbour_id,
                     rtt: entry.rtt +rtt,
                     hc,
                     pl: entry.pl,
-                    last_update: SystemTime::now(),
+                    last_update: last_update,
                 };
 
                 // add it to state
