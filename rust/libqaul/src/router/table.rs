@@ -16,6 +16,7 @@ use prost::Message;
 use std::sync::RwLock;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
+use std::time::{SystemTime};
 
 use crate::connections::ConnectionModule;
 use super::proto;
@@ -53,6 +54,8 @@ pub struct RoutingConnectionEntry {
     /// this only applies to modules where this is measured
     /// on all other modules this value is 0
     pub pl: f32,
+    /// last update
+    pub last_update: SystemTime,
 }
 
 /// Global Routing Table Implementation
@@ -116,6 +119,7 @@ impl RoutingTable {
                             rtt: connection.rtt,
                             hc,
                             pl: connection.pl,
+                            last_update: connection.last_update.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
                         };
                         table.entry.push(table_entry);
                     }
@@ -142,6 +146,7 @@ impl RoutingTable {
                         rtt: connection.rtt,
                         hc,
                         pl: connection.pl,
+                        last_update: connection.last_update.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
                     };
                     table.entry.push(table_entry);    
                 }
@@ -298,6 +303,8 @@ pub struct RoutingInfoEntry {
     pub hc: u8,
     /// package loss
     pub pl: f32,
+    /// last_update 
+    pub last_update: u64
 }
 
 /// serializable routing information to send to neighbours

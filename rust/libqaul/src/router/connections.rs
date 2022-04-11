@@ -105,6 +105,7 @@ impl ConnectionTable {
             rtt: 0,
             hc: 0,
             pl: 0.0,
+            last_update: SystemTime::now()
         });
 
         let routing_user_entry = RoutingUserEntry {
@@ -248,6 +249,7 @@ impl ConnectionTable {
                     rtt: connection.rtt,
                     hc: connection.hc,
                     pl: connection.pl,
+                    last_update: connection.last_update,
                 };
 
                 // check if user entry already exists hashmap

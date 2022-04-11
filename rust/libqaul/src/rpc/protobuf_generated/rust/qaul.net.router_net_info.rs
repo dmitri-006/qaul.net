@@ -78,6 +78,9 @@ pub struct RoutingInfoEntry {
     //// package loss
     #[prost(float, tag="4")]
     pub pl: f32,
+    /// last update
+    #[prost(uint64, tag="5")]
+    pub last_update: u64,
 }
 /// User information table
 #[derive(Clone, PartialEq, ::prost::Message)]
