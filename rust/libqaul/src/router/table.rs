@@ -103,7 +103,7 @@ impl RoutingTable {
 
                     //check last update is expired
                     let dur = user.connections[i].last_update.elapsed().unwrap().as_secs();
-                    if user.connections[i].hc > 0 && dur >= (user.connections[i].hc as u64 * 20){
+                    if user.connections[i].hc > 0 && dur >= ((user.connections[i].hc + 1) as u64 * 20){
                         continue;
                     }
     
@@ -139,7 +139,7 @@ impl RoutingTable {
 
                     //check last update is expired
                     let dur = user.connections[i].last_update.elapsed().unwrap().as_secs();
-                    if user.connections[i].hc > 0 && dur >= (user.connections[i].hc as u64 * 20){
+                    if user.connections[i].hc > 0 && dur >= ((user.connections[i].hc + 1) as u64 * 20){
                         continue;
                     }
 

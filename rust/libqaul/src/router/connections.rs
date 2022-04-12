@@ -145,18 +145,18 @@ impl ConnectionTable {
             if let Ok(user_id) = PeerId::from_bytes(&entry.user){
                 // calculate hop count
                 // if hop count is > 255, return
-                let hc;
-                if entry.hc[0] < 255 {
-                    hc = entry.hc[0] +1;
-                }
-                else {
+                if entry.hc[0] >= 255 {
                     return;
                 }
 
+                let mut hc = entry.hc[0];
                 //last_update is updating only in case of neighbor node
                 let mut last_update = SystemTime::now().checked_sub(Duration::from_secs(entry.last_update)).unwrap();
-                if hc == 1{
+                if hc == 0{
                     last_update = SystemTime::now();
+                    hc = 1;
+                }else if conn != ConnectionModule::Lan {
+                   hc = hc + 1;
                 }
 
                 // fill structure
@@ -310,7 +310,9 @@ impl ConnectionTable {
 
                 // check if entry is expired
                 let dur = value.last_update.elapsed().unwrap().as_secs();
-                if value.hc > 0 && dur < (value.hc as u64 * 20){
+
+                //hc is exceed 20 or updated time big than 5 min it's expired 
+                if value.hc > 0 && dur < 300 && value.hc < 20 && dur < ((value.hc + 1) as u64 * 20){
                     expired = false;
                     if value.rtt < rtt {
                         rtt = value.rtt;
