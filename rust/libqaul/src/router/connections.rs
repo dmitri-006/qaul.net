@@ -120,6 +120,13 @@ impl ConnectionTable {
     /// enter it into all modules where we are connected to
     pub fn process_received_routing_info( neighbour_id: PeerId, info: Vec<router_net_proto::RoutingInfoEntry> ) {
 
+        log::info!("process_received_routing_info count={}", info.len());
+        for inf in &info{
+            let c: &[u8] = &inf.user;
+            let userid = PeerId::from_bytes(c).unwrap();
+            log::info!("qual process_received_routing_info user={}, hc={}", userid, inf.hc[0]);
+        }
+
         // try Lan module
         if let Some(rtt) = Neighbours::get_rtt(&neighbour_id , &ConnectionModule::Lan ){
             Self::fill_received_routing_info(ConnectionModule::Lan, neighbour_id, rtt, info.clone());
@@ -147,8 +154,8 @@ impl ConnectionTable {
                 }
 
                 //last_update is updating only in case of neighbor node
-                let mut last_update = SystemTime::UNIX_EPOCH.checked_add(Duration::from_secs(entry.last_update)).unwrap();
-                if hc > 1{
+                let mut last_update = SystemTime::now().checked_sub(Duration::from_secs(entry.last_update)).unwrap();
+                if hc == 1{
                     last_update = SystemTime::now();
                 }
 

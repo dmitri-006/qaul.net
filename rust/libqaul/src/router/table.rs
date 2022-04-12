@@ -16,7 +16,7 @@ use prost::Message;
 use std::sync::RwLock;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
-use std::time::{SystemTime};
+use std::time::{SystemTime, Duration};
 
 use crate::connections::ConnectionModule;
 use super::proto;
@@ -89,6 +89,9 @@ impl RoutingTable {
         // get access to routing table
         let routing_table = ROUTINGTABLE.get().read().unwrap();
 
+        //base timestamp is 5 min
+        let base_ts = SystemTime::now().checked_sub(Duration::from_secs( 5 * 60)).unwrap();
+
         // loop through routing table
         for (user_id, user) in routing_table.table.iter() {
             if user.connections.len() == 0 {
@@ -100,6 +103,11 @@ impl RoutingTable {
                 let mut min_hc_idx: Option<usize> = None;
                 let mut min_hc: u8 = 255;
                 for i in 0..user.connections.len(){
+                    //check last update is in last 5 min
+                    if user.connections[i].last_update < base_ts {
+                        continue;
+                    }
+
                     if user.connections[i].hc < min_hc{
                         min_hc = user.connections[i].hc;
                         min_hc_idx = Some(i);
@@ -119,7 +127,7 @@ impl RoutingTable {
                             rtt: connection.rtt,
                             hc,
                             pl: connection.pl,
-                            last_update: connection.last_update.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
+                            last_update: SystemTime::now().duration_since(connection.last_update).unwrap().as_secs()
                         };
                         table.entry.push(table_entry);
                     }
@@ -129,6 +137,11 @@ impl RoutingTable {
                 let mut min_hc_idx: Option<usize> = None;
                 let mut min_hc: u8 = 255;
                 for i in 0..user.connections.len(){
+                    //check last update is in last 5 min
+                    if user.connections[i].last_update < base_ts {
+                        continue;
+                    }
+
                     if user.connections[i].hc < min_hc{
                         min_hc = user.connections[i].hc;
                         min_hc_idx = Some(i);
