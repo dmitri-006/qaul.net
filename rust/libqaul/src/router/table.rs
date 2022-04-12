@@ -16,7 +16,7 @@ use prost::Message;
 use std::sync::RwLock;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
-use std::time::{SystemTime, Duration};
+use std::time::{SystemTime};
 
 use crate::connections::ConnectionModule;
 use super::proto;
@@ -89,9 +89,6 @@ impl RoutingTable {
         // get access to routing table
         let routing_table = ROUTINGTABLE.get().read().unwrap();
 
-        //base timestamp is 5 min
-        let base_ts = SystemTime::now().checked_sub(Duration::from_secs( 5 * 60)).unwrap();
-
         // loop through routing table
         for (user_id, user) in routing_table.table.iter() {
             if user.connections.len() == 0 {
@@ -103,11 +100,13 @@ impl RoutingTable {
                 let mut min_hc_idx: Option<usize> = None;
                 let mut min_hc: u8 = 255;
                 for i in 0..user.connections.len(){
-                    //check last update is in last 5 min
-                    if user.connections[i].last_update < base_ts {
+
+                    //check last update is expired
+                    let dur = user.connections[i].last_update.elapsed().unwrap().as_secs();
+                    if user.connections[i].hc > 0 && dur >= (user.connections[i].hc as u64 * 20){
                         continue;
                     }
-
+    
                     if user.connections[i].hc < min_hc{
                         min_hc = user.connections[i].hc;
                         min_hc_idx = Some(i);
@@ -137,8 +136,10 @@ impl RoutingTable {
                 let mut min_hc_idx: Option<usize> = None;
                 let mut min_hc: u8 = 255;
                 for i in 0..user.connections.len(){
-                    //check last update is in last 5 min
-                    if user.connections[i].last_update < base_ts {
+
+                    //check last update is expired
+                    let dur = user.connections[i].last_update.elapsed().unwrap().as_secs();
+                    if user.connections[i].hc > 0 && dur >= (user.connections[i].hc as u64 * 20){
                         continue;
                     }
 

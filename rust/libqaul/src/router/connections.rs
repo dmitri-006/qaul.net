@@ -309,16 +309,25 @@ impl ConnectionTable {
                 let mut expired = true;
 
                 // check if entry is expired
-                if let Ok(duration) = value.last_update.elapsed() {
-                    if duration < Duration::new(20, 0) {
-                        expired = false;
-
-                        if value.rtt < rtt {
-                            rtt = value.rtt;
-                            entry_found = Some(value);
-                        }
+                let dur = value.last_update.elapsed().unwrap().as_secs();
+                if value.hc > 0 && dur < (value.hc as u64 * 20){
+                    expired = false;
+                    if value.rtt < rtt {
+                        rtt = value.rtt;
+                        entry_found = Some(value);
                     }
                 }
+
+                // if let Ok(duration) = value.last_update.elapsed() {
+                //     if duration < Duration::new(20, 0) {
+                //         expired = false;
+
+                //         if value.rtt < rtt {
+                //             rtt = value.rtt;
+                //             entry_found = Some(value);
+                //         }
+                //     }
+                // }
 
                 // put connection for removal if expired
                 if expired {
