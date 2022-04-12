@@ -126,7 +126,7 @@ impl RoutingTable {
                             rtt: connection.rtt,
                             hc,
                             pl: connection.pl,
-                            last_update: SystemTime::now().duration_since(connection.last_update).unwrap().as_secs()
+                            last_update: connection.last_update.elapsed().unwrap().as_secs()
                         };
                         table.entry.push(table_entry);
                     }

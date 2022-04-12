@@ -156,7 +156,7 @@ impl ConnectionTable {
                     last_update = SystemTime::now();
                     hc = 1;
                 }else if conn != ConnectionModule::Lan {
-                   hc = hc + 1;
+                    hc = hc + 1;
                 }
 
                 // fill structure
