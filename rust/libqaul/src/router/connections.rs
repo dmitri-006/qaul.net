@@ -202,22 +202,20 @@ impl ConnectionTable {
         }
     }
 
-    /// Create a routing table and set it to active routing table
-    pub fn create_routing_table() {
-
+    pub fn handle_propagation_id(){
         //update local user's propagation id
-        let mut update_users: Vec<(PeerId, u32)> = vec![];
-        let local = LOCAL.get().read().unwrap();
-        for (user_id, user) in &local.table {
+        let mut local = LOCAL.get().write().unwrap();
+        for (_user_id, user) in local.table.iter_mut() {
             let elapsed = user.propgid_update.elapsed().unwrap().as_secs();
             if elapsed >= 10{
-                update_users.push((user_id.to_owned(), user.propg_id + 1));
+                user.propg_id = user.propg_id + 1;
+                user.propgid_update = SystemTime::now();                
             }
         }
-        for (user_id, propg_id) in update_users{
-            Self::add_local_user(propg_id, user_id);
-        }
+    }
 
+    /// Create a routing table and set it to active routing table
+    pub fn create_routing_table() {
 
         // create a new table
         let mut table = RoutingTable { table: HashMap::new() };
