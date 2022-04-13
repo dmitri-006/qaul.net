@@ -75,12 +75,9 @@ pub struct RoutingInfoEntry {
     //// hop count
     #[prost(bytes="vec", tag="3")]
     pub hc: ::prost::alloc::vec::Vec<u8>,
-    //// package loss
-    #[prost(float, tag="4")]
-    pub pl: f32,
     /// last update
-    #[prost(uint64, tag="5")]
-    pub last_update: u64,
+    #[prost(uint32, tag="4")]
+    pub propg_id: u32,
 }
 /// User information table
 #[derive(Clone, PartialEq, ::prost::Message)]

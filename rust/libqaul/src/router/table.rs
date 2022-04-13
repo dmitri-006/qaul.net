@@ -49,11 +49,8 @@ pub struct RoutingConnectionEntry {
     /// hop count
     /// how many hops has the connection
     pub hc: u8,
-    /// Package loss
-    /// how stable is the connection
-    /// this only applies to modules where this is measured
-    /// on all other modules this value is 0
-    pub pl: f32,
+    /// propagation id
+    pub propg_id: u32,
     /// last update
     pub last_update: SystemTime,
 }
@@ -81,7 +78,7 @@ impl RoutingTable {
         table.table = new_table.table;
     }
 
-    pub fn create_routing_info( neighbour: Option<PeerId> ) -> router_net_proto::RoutingInfoTable {
+    pub fn create_routing_info(neighbour: Option<PeerId> ) -> router_net_proto::RoutingInfoTable {
         let mut table = router_net_proto::RoutingInfoTable {
             entry: Vec::new()
         };        
@@ -96,74 +93,99 @@ impl RoutingTable {
             }
 
             if let Some(neighbour_id) = neighbour {
-                // find min hc entry
-                let mut min_hc_idx: Option<usize> = None;
-                let mut min_hc: u8 = 255;
-                for i in 0..user.connections.len(){
-
-                    //check last update is expired
-                    let dur = user.connections[i].last_update.elapsed().unwrap().as_secs();
-                    if user.connections[i].hc > 0 && dur >= ((user.connections[i].hc + 1) as u64 * 20){
-                        continue;
-                    }
-    
-                    if user.connections[i].hc < min_hc{
-                        min_hc = user.connections[i].hc;
-                        min_hc_idx = Some(i);
-                    }
-                }
-
-                if let Some(min_idx) = min_hc_idx{
-                    let connection = user.connections.get(min_idx).unwrap();
-
-                    // check if min hc entry is same neighbour node to rescursive exchange routing infomation
-                    if neighbour_id != connection.node{
-                        let mut hc = Vec::new();
-                        hc.push(connection.hc);
-    
-                        let table_entry = router_net_proto::RoutingInfoEntry {
-                            user: user_id.to_bytes(),
-                            rtt: connection.rtt,
-                            hc,
-                            pl: connection.pl,
-                            last_update: connection.last_update.elapsed().unwrap().as_secs()
-                        };
-                        table.entry.push(table_entry);
-                    }
-                }
-            } else {
-                // find min hc entry
-                let mut min_hc_idx: Option<usize> = None;
-                let mut min_hc: u8 = 255;
-                for i in 0..user.connections.len(){
-
-                    //check last update is expired
-                    let dur = user.connections[i].last_update.elapsed().unwrap().as_secs();
-                    if user.connections[i].hc > 0 && dur >= ((user.connections[i].hc + 1) as u64 * 20){
-                        continue;
-                    }
-
-                    if user.connections[i].hc < min_hc{
-                        min_hc = user.connections[i].hc;
-                        min_hc_idx = Some(i);
-                    }
-                }
-
-                if let Some(min_idx) = min_hc_idx{
-                    let connection = user.connections.get(min_idx).unwrap();
-
+                if neighbour_id != user.connections[0].node{
                     let mut hc = Vec::new();
-                    hc.push(connection.hc);
+                    hc.push(user.connections[0].hc);
 
                     let table_entry = router_net_proto::RoutingInfoEntry {
                         user: user_id.to_bytes(),
-                        rtt: connection.rtt,
-                        hc,
-                        pl: connection.pl,
-                        last_update: connection.last_update.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
+                        rtt: user.connections[0].rtt,
+                        hc: hc,
+                        propg_id: user.connections[0].propg_id
                     };
-                    table.entry.push(table_entry);    
+                    table.entry.push(table_entry);
                 }
+
+                // // find min hc entry
+                // let mut min_hc_idx: Option<usize> = None;
+                // let mut min_hc: u8 = 255;
+                // for i in 0..user.connections.len(){
+
+                //     //check last update is expired
+                //     let dur = user.connections[i].last_update.elapsed().unwrap().as_secs();
+                //     if user.connections[i].hc > 0 && dur >= ((user.connections[i].hc + 1) as u64 * 20){
+                //         continue;
+                //     }
+    
+                //     if user.connections[i].hc < min_hc{
+                //         min_hc = user.connections[i].hc;
+                //         min_hc_idx = Some(i);
+                //     }
+                // }
+
+                // if let Some(min_idx) = min_hc_idx{
+                //     let connection = user.connections.get(min_idx).unwrap();
+
+                //     // check if min hc entry is same neighbour node to rescursive exchange routing infomation
+                //     if neighbour_id != connection.node{
+                //         let mut hc = Vec::new();
+                //         hc.push(connection.hc);
+    
+                //         let table_entry = router_net_proto::RoutingInfoEntry {
+                //             user: user_id.to_bytes(),
+                //             rtt: connection.rtt,
+                //             hc,
+                //             pl: connection.pl,
+                //             last_update: connection.last_update.elapsed().unwrap().as_secs()
+                //         };
+                //         table.entry.push(table_entry);
+                //     }
+                // }
+            } else {
+
+                let mut hc = Vec::new();
+                hc.push(user.connections[0].hc);
+
+                let table_entry = router_net_proto::RoutingInfoEntry {
+                    user: user_id.to_bytes(),
+                    rtt: user.connections[0].rtt,
+                    hc: hc,
+                    propg_id: user.connections[0].propg_id
+                };
+                table.entry.push(table_entry);
+
+                // // find min hc entry
+                // let mut min_hc_idx: Option<usize> = None;
+                // let mut min_hc: u8 = 255;
+                // for i in 0..user.connections.len(){
+
+                //     //check last update is expired
+                //     let dur = user.connections[i].last_update.elapsed().unwrap().as_secs();
+                //     if user.connections[i].hc > 0 && dur >= ((user.connections[i].hc + 1) as u64 * 20){
+                //         continue;
+                //     }
+
+                //     if user.connections[i].hc < min_hc{
+                //         min_hc = user.connections[i].hc;
+                //         min_hc_idx = Some(i);
+                //     }
+                // }
+
+                // if let Some(min_idx) = min_hc_idx{
+                //     let connection = user.connections.get(min_idx).unwrap();
+
+                //     let mut hc = Vec::new();
+                //     hc.push(connection.hc);
+
+                //     let table_entry = router_net_proto::RoutingInfoEntry {
+                //         user: user_id.to_bytes(),
+                //         rtt: connection.rtt,
+                //         hc,
+                //         pl: connection.pl,
+                //         last_update: connection.last_update.duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
+                //     };
+                //     table.entry.push(table_entry);    
+                // }
             }
         }
 
@@ -315,8 +337,8 @@ pub struct RoutingInfoEntry {
     pub rtt: u32,
     /// hop count
     pub hc: u8,
-    /// package loss
-    pub pl: f32,
+    /// propagation id
+    propg_id: u32,    
     /// last_update 
     pub last_update: u64
 }

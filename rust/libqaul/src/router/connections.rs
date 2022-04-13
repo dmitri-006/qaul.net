@@ -18,7 +18,7 @@ use prost::Message;
 use std::sync::RwLock;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
-use std::time::{SystemTime, Duration};
+use std::time::{SystemTime};
 
 use crate::connections::ConnectionModule;
 use crate::node;
@@ -46,8 +46,8 @@ struct NeighbourEntry {
     rtt: u32,
     /// hop count
     hc: u8,
-    /// package loss
-    pl: f32,
+    /// propagation id
+    propg_id: u32,
     /// time when the node was last updated
     last_update: SystemTime,
 }
@@ -88,13 +88,13 @@ impl ConnectionTable {
         // create filled state for locally registered users
         {
             for user in node::user_accounts::UserAccounts::get_user_info() {
-                Self::add_local_user(user.id);
+                Self::add_local_user(1, user.id);
             }
         }
     }
 
     /// add a new local user to state
-    pub fn add_local_user(user_id: PeerId) {
+    pub fn add_local_user(propg_id: u32, user_id: PeerId) {
         let node_id = node::Node::get_id();
         let mut routing_table = LOCAL.get().write().unwrap();
 
@@ -104,7 +104,7 @@ impl ConnectionTable {
             node: node_id,
             rtt: 0,
             hc: 0,
-            pl: 0.0,
+            propg_id: propg_id,
             last_update: SystemTime::now()
         });
 
@@ -145,27 +145,18 @@ impl ConnectionTable {
             if let Ok(user_id) = PeerId::from_bytes(&entry.user){
                 // calculate hop count
                 // if hop count is > 255, return
-                if entry.hc[0] >= 255 {
+                if entry.hc[0] >= 255 {                    
                     return;
                 }
 
-                let mut hc = entry.hc[0];
-                //last_update is updating only in case of neighbor node
-                let mut last_update = SystemTime::now().checked_sub(Duration::from_secs(entry.last_update)).unwrap();
-                if hc == 0{
-                    last_update = SystemTime::now();
-                    hc = 1;
-                }else if conn != ConnectionModule::Lan {
-                    hc = hc + 1;
-                }
-
+                let hc = entry.hc[0] + 1;
                 // fill structure
                 let neighbour = NeighbourEntry {
                     id: neighbour_id,
                     rtt: entry.rtt +rtt,
                     hc,
-                    pl: entry.pl,
-                    last_update: last_update,
+                    propg_id: entry.propg_id,
+                    last_update: SystemTime::now(),
                 };
 
                 // add it to state
@@ -204,6 +195,21 @@ impl ConnectionTable {
 
     /// Create a routing table and set it to active routing table
     pub fn create_routing_table() {
+
+        //update local user's propagation id
+        let mut update_users: Vec<(PeerId, u32)> = vec![];
+        let local = LOCAL.get().read().unwrap();
+        for (user_id, user) in &local.table {
+            let elapsed = user.connections[0].last_update.elapsed().unwrap().as_secs();
+            if elapsed >= 10{
+                update_users.push((user_id.to_owned(), user.connections[0].propg_id + 1));
+            }
+        }
+        for (user_id, propg_id) in update_users{
+            Self::add_local_user(propg_id, user_id);
+        }
+
+
         // create a new table
         let mut table = RoutingTable { table: HashMap::new() };
 
@@ -261,7 +267,7 @@ impl ConnectionTable {
                     node: connection.id,
                     rtt: connection.rtt,
                     hc: connection.hc,
-                    pl: connection.pl,
+                    propg_id: connection.propg_id,
                     last_update: connection.last_update,
                 };
 
@@ -312,7 +318,7 @@ impl ConnectionTable {
                 let dur = value.last_update.elapsed().unwrap().as_secs();
 
                 //hc is exceed 20 or updated time big than 5 min it's expired 
-                if value.hc > 0 && dur < 300 && value.hc < 20 && dur < ((value.hc + 1) as u64 * 20){
+                if dur < 300 && value.hc < 20 && dur < ((value.hc + 1) as u64 * 20){
                     expired = false;
                     if value.rtt < rtt {
                         rtt = value.rtt;
@@ -342,7 +348,7 @@ impl ConnectionTable {
                     id: entry.id.clone(),
                     rtt: entry.rtt,
                     hc: entry.hc,
-                    pl: entry.pl,
+                    propg_id: entry.propg_id,
                     last_update: entry.last_update.clone(),
                 })
             }

@@ -55,10 +55,8 @@ message RoutingInfoEntry {
     uint32 rtt = 2;
     /// hop count
     bytes hc = 3;
-    /// package loss
-    float pl = 4;
     // last update
-    uint64 last_update = 5;
+    uint32 propg_id = 4;
 }
 
 // User information table
