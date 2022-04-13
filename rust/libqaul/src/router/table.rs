@@ -31,6 +31,10 @@ static ROUTINGTABLE: Storage<RwLock<RoutingTable>> = Storage::new();
 pub struct RoutingUserEntry {
     /// user id
     pub id: PeerId,
+    /// propagation id
+    pub propg_id: u32,
+    /// propagation id updated
+    pub propgid_update: SystemTime,
     /// best routing entry per connection module
     pub connections: Vec<RoutingConnectionEntry>,
 }
@@ -49,8 +53,6 @@ pub struct RoutingConnectionEntry {
     /// hop count
     /// how many hops has the connection
     pub hc: u8,
-    /// propagation id
-    pub propg_id: u32,
     /// last update
     pub last_update: SystemTime,
 }
@@ -101,7 +103,7 @@ impl RoutingTable {
                         user: user_id.to_bytes(),
                         rtt: user.connections[0].rtt,
                         hc: hc,
-                        propg_id: user.connections[0].propg_id
+                        propg_id: user.propg_id
                     };
                     table.entry.push(table_entry);
                 }
@@ -150,7 +152,7 @@ impl RoutingTable {
                     user: user_id.to_bytes(),
                     rtt: user.connections[0].rtt,
                     hc: hc,
-                    propg_id: user.connections[0].propg_id
+                    propg_id: user.propg_id
                 };
                 table.entry.push(table_entry);
 

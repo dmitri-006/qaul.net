@@ -46,8 +46,6 @@ struct NeighbourEntry {
     rtt: u32,
     /// hop count
     hc: u8,
-    /// propagation id
-    propg_id: u32,
     /// time when the node was last updated
     last_update: SystemTime,
 }
@@ -58,6 +56,10 @@ struct NeighbourEntry {
 struct UserEntry {
     /// user id
     id: PeerId,
+    /// propagation id
+    propg_id: u32,
+    /// propagation id updated
+    pub propgid_update: SystemTime,
     /// connection entries
     connections: BTreeMap<PeerId, NeighbourEntry>,
 }
@@ -104,12 +106,13 @@ impl ConnectionTable {
             node: node_id,
             rtt: 0,
             hc: 0,
-            propg_id: propg_id,
             last_update: SystemTime::now()
         });
 
         let routing_user_entry = RoutingUserEntry {
             id: user_id.to_owned(),
+            propg_id: propg_id,
+            propgid_update: SystemTime::now(),
             connections: connections,
         };
 
@@ -124,7 +127,7 @@ impl ConnectionTable {
         for inf in &info{
             let c: &[u8] = &inf.user;
             let userid = PeerId::from_bytes(c).unwrap();
-            log::info!("qual process_received_routing_info user={}, hc={}", userid, inf.hc[0]);
+            log::info!("qual process_received_routing_info user={}, hc={}, propg_id={}", userid, inf.hc[0], inf.propg_id);
         }
 
         // try Lan module
@@ -155,18 +158,16 @@ impl ConnectionTable {
                     id: neighbour_id,
                     rtt: entry.rtt +rtt,
                     hc,
-                    propg_id: entry.propg_id,
                     last_update: SystemTime::now(),
                 };
-
                 // add it to state
-                Self::add_connection(user_id, neighbour, conn.clone());
+                Self::add_connection(user_id, entry.propg_id, neighbour, conn.clone());
             }
         }
     }
 
     /// add connection to local state
-    fn add_connection(user_id: PeerId, connection: NeighbourEntry, module: ConnectionModule) {
+    fn add_connection(user_id: PeerId, propg_id: u32, connection: NeighbourEntry, module: ConnectionModule) {
         // get access to the connection table
         let mut connection_table;
         match module {
@@ -179,13 +180,21 @@ impl ConnectionTable {
 
         // check if user already exists
         if let Some(user) = connection_table.table.get_mut(&user_id) {
-            user.connections.insert(connection.id, connection);
+
+            if connection.hc == 1 || propg_id > user.propg_id{ 
+                user.propg_id = propg_id;
+                user.propgid_update = SystemTime::now();
+                user.connections.insert(connection.id, connection);
+            }
+
         } else {
             let mut connections_map = BTreeMap::new();
             connections_map.insert(connection.id, connection);
 
             let user = UserEntry { 
                 id: user_id,
+                propg_id: propg_id,
+                propgid_update: SystemTime::now(),
                 connections: connections_map,
             };
 
@@ -200,9 +209,9 @@ impl ConnectionTable {
         let mut update_users: Vec<(PeerId, u32)> = vec![];
         let local = LOCAL.get().read().unwrap();
         for (user_id, user) in &local.table {
-            let elapsed = user.connections[0].last_update.elapsed().unwrap().as_secs();
+            let elapsed = user.propgid_update.elapsed().unwrap().as_secs();
             if elapsed >= 10{
-                update_users.push((user_id.to_owned(), user.connections[0].propg_id + 1));
+                update_users.push((user_id.to_owned(), user.propg_id + 1));
             }
         }
         for (user_id, propg_id) in update_users{
@@ -267,7 +276,6 @@ impl ConnectionTable {
                     node: connection.id,
                     rtt: connection.rtt,
                     hc: connection.hc,
-                    propg_id: connection.propg_id,
                     last_update: connection.last_update,
                 };
 
@@ -280,6 +288,8 @@ impl ConnectionTable {
 
                     let routing_user_entry = RoutingUserEntry {
                         id: user_id.to_owned(),
+                        propg_id: user.propg_id,
+                        propgid_update: user.propgid_update,
                         connections: connections,
                     };
                     table.table.insert(user_id.to_owned(), routing_user_entry);
@@ -348,7 +358,6 @@ impl ConnectionTable {
                     id: entry.id.clone(),
                     rtt: entry.rtt,
                     hc: entry.hc,
-                    propg_id: entry.propg_id,
                     last_update: entry.last_update.clone(),
                 })
             }
