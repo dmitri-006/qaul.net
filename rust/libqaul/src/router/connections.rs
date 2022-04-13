@@ -18,7 +18,7 @@ use prost::Message;
 use std::sync::RwLock;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
-use std::time::{SystemTime};
+use std::time::{SystemTime, Duration};
 
 use crate::connections::ConnectionModule;
 use crate::node;
@@ -325,27 +325,27 @@ impl ConnectionTable {
                 let mut expired = true;
 
                 // check if entry is expired
-                let dur = value.last_update.elapsed().unwrap().as_secs();
+                // let dur = value.last_update.elapsed().unwrap().as_secs();
 
-                //hc is exceed 20 or updated time big than 5 min it's expired 
-                if dur < 300 && value.hc < 20 && dur < ((value.hc + 1) as u64 * 20){
-                    expired = false;
-                    if value.rtt < rtt {
-                        rtt = value.rtt;
-                        entry_found = Some(value);
-                    }
-                }
-
-                // if let Ok(duration) = value.last_update.elapsed() {
-                //     if duration < Duration::new(20, 0) {
-                //         expired = false;
-
-                //         if value.rtt < rtt {
-                //             rtt = value.rtt;
-                //             entry_found = Some(value);
-                //         }
+                // //hc is exceed 20 or updated time big than 5 min it's expired 
+                // if dur < 300 && value.hc < 20 && dur < ((value.hc + 1) as u64 * 20){
+                //     expired = false;
+                //     if value.rtt < rtt {
+                //         rtt = value.rtt;
+                //         entry_found = Some(value);
                 //     }
                 // }
+
+                if let Ok(duration) = value.last_update.elapsed() {
+                    if duration < Duration::new(20, 0) {
+                        expired = false;
+
+                        if value.rtt < rtt {
+                            rtt = value.rtt;
+                            entry_found = Some(value);
+                        }
+                    }
+                }
 
                 // put connection for removal if expired
                 if expired {
