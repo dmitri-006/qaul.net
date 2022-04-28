@@ -1,0 +1,1 @@
+& 'C:\Program files (x86)\NSIS\makensis.exe' qaul_nsis_installer.nsi
