@@ -84,44 +84,44 @@ impl Messaging {
         FAILEDMESSAGING.set(RwLock::new(failed_messaging));
     }
 
-    // create DB key from conversation ID, timestamp
-    fn get_db_key_from_vec(conversation_id: Vec<u8>, timestamp: u64) -> Vec<u8> {
-        let mut timestamp_bytes = timestamp.to_be_bytes().to_vec();
-        let mut userid_bytes = timestamp.to_be_bytes().to_vec();        
-        let mut key_bytes = conversation_id;
+    // // create DB key from conversation ID, timestamp
+    // fn get_db_key_from_vec(conversation_id: Vec<u8>, timestamp: u64) -> Vec<u8> {
+    //     let mut timestamp_bytes = timestamp.to_be_bytes().to_vec();
+    //     let mut userid_bytes = timestamp.to_be_bytes().to_vec();        
+    //     let mut key_bytes = conversation_id;
 
-        userid_bytes.append(&mut key_bytes);
-        userid_bytes.append(&mut timestamp_bytes);
-        userid_bytes
-    }
+    //     userid_bytes.append(&mut key_bytes);
+    //     userid_bytes.append(&mut timestamp_bytes);
+    //     userid_bytes
+    // }
 
-    /// save failed message 
-    pub fn save_failed_outgoing_message(user_id: PeerId, conversation_id: PeerId, contents: String){
-        let timestamp = Timestamp::get_timestamp();
-        let key = Self::get_db_key_from_vec(conversation_id.to_bytes(), timestamp);
+    // /// save failed message 
+    // pub fn save_failed_outgoing_message(user_id: PeerId, conversation_id: PeerId, contents: String){
+    //     let timestamp = Timestamp::get_timestamp();
+    //     let key = Self::get_db_key_from_vec(conversation_id.to_bytes(), timestamp);
 
-        // create chat message
-        let message = FailedMessage {
-            user_id: user_id.to_bytes(),
-            conversation_id: conversation_id.to_bytes(),
-            message: contents,
-            last_try: timestamp,
-            created_at: timestamp,
-            try_count: 1,
-        };
+    //     // create chat message
+    //     let message = FailedMessage {
+    //         user_id: user_id.to_bytes(),
+    //         conversation_id: conversation_id.to_bytes(),
+    //         message: contents,
+    //         last_try: timestamp,
+    //         created_at: timestamp,
+    //         try_count: 1,
+    //     };
 
-        let mut failed_meesaging = FAILEDMESSAGING.get().write().unwrap();        
+    //     let failed_meesaging = FAILEDMESSAGING.get().write().unwrap();
 
-        // save message in data base
-        if let Err(e) = failed_meesaging.tree.insert(key, message) {
-            log::error!("Error saving failed chat message to data base: {}", e);
-        }
+    //     // save message in data base
+    //     if let Err(e) = failed_meesaging.tree.insert(key, message) {
+    //         log::error!("Error saving failed chat message to data base: {}", e);
+    //     }
 
-        // flush trees to disk
-        if let Err(e) = failed_meesaging.tree.flush() {
-            log::error!("Error failed chat messages flush: {}", e);
-        }        
-    }
+    //     // flush trees to disk
+    //     if let Err(e) = failed_meesaging.tree.flush() {
+    //         log::error!("Error failed chat messages flush: {}", e);
+    //     }        
+    // }
 
     /// pack, sign and schedule a message for sending
     pub fn pack_and_send_message(user_account: &UserAccount, receiver: PeerId, data: Vec<u8>) -> Result<Vec<u8>, String> {
@@ -272,7 +272,7 @@ impl Messaging {
                                         Some(proto::messaging::Message::ChatMessage(chat_message)) => {
                                             log::error!("chat message: {}", chat_message.content);
                                             // send data to chat
-                                            if Chat::save_incoming_message(receiver_id, sender_id, chat_message, container.signature.clone()) == true{
+                                            if Chat::save_incoming_chat_message(receiver_id, sender_id, chat_message, container.signature.clone()) == true{
                                                 //send confirm message
                                                 match Self::_send_confirmation(receiver_id, sender_id, container.signature.clone()) {
                                                     Ok(_) => {

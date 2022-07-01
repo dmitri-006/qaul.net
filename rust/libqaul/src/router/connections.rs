@@ -236,7 +236,7 @@ impl ConnectionTable {
             //         }
             //     }
             // }
-            log::error!("receive_inode hc={}, propg_id={}", connection.hc, pgid);
+            //log::error!("receive_inode hc={}, propg_id={}", connection.hc, pgid);
             
             if connection.hc == 1 || pgid > user.pgid {                
                 user.pgid = pgid;
@@ -274,7 +274,7 @@ impl ConnectionTable {
             } 
 
         } else {
-            log::error!("receive_inode_insert hc={}, propg_id={}", connection.hc, pgid);
+            //log::error!("receive_inode_insert hc={}, propg_id={}", connection.hc, pgid);
             let mut connections_map = BTreeMap::new();
             let hc = connection.hc;
             connections_map.insert(connection.id, connection);

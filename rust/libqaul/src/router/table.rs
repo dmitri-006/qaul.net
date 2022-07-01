@@ -238,11 +238,6 @@ impl RoutingTable {
                 Some(connection) => return Some(connection.to_owned()),
             }
         }
-
-        if let Some(user_entry) = routing_table.table.get(&user_id) {
-            log::error!("no connections!!!!");
-        }
-
         None
     }
 

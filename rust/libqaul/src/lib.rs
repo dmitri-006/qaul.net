@@ -381,7 +381,7 @@ pub async fn start(storage_path: String) -> () {
                     if let Some((neighbour_id, connection_module, data)) =
                         RouterInfo::check_scheduler()
                     {
-                        log::error!(
+                        log::info!(
                             "sending routing information via {:?} to {:?}, {:?}",
                             connection_module,
                             neighbour_id,

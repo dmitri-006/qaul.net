@@ -20,6 +20,11 @@ fn main() {
 	// in order to save them in the data base
 	prost_build.type_attribute("ChatMessage", "#[derive(serde::Serialize, serde::Deserialize)]");
 	prost_build.type_attribute("ChatOverview", "#[derive(serde::Serialize, serde::Deserialize)]");
+
+	// prost_build.type_attribute("ChatContent", "#[derive(serde::Serialize, serde::Deserialize)]");
+	// prost_build.type_attribute("FileShareContent", "#[derive(serde::Serialize, serde::Deserialize)]");
+	// // prost_build.type_attribute("ChatMessageContent", "#[derive(serde::Serialize, serde::Deserialize)]");
+	
 	
 	// make network messaging serializable
 	// in order to save them in the data base

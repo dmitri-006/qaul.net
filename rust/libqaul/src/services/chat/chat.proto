@@ -47,7 +47,7 @@ message ChatOverview {
     // unread messages
     int32 unread = 5;
     // preview text of the last message
-    string content = 6;
+    bytes content = 6;
     // sender of the last message
     bytes last_message_sender_id = 7;
 }
@@ -83,8 +83,28 @@ message ChatMessage {
     // time when the message was received
     uint64 received_at = 6;
     // content of the message
-    string content = 7;
+    bytes content = 7;
 }
+
+message ChatMessageContent{
+    oneof content{
+        ChatContent chat_content = 1;
+        FileShareContent file_content = 2;
+    }
+}
+
+message ChatContent{
+    string content = 1;
+}
+
+message FileShareContent{
+    uint64 history_index = 1;
+    uint64 file_id = 2;
+    string file_name = 3;
+    uint32 file_size = 4;
+    string file_descr = 5; 
+}
+
 
 // send chat message
 message ChatMessageSend {
