@@ -1,7 +1,7 @@
 // Copyright (c) 2021 Open Community Project Association https://ocpa.ch
 // This software is published under the AGPLv3 license.
 
-//! # Feed module functions
+//! # FileShare module functions
 
 use prost::Message;
 use super::rpc::Rpc;
@@ -10,13 +10,13 @@ use std::fmt;
 /// include generated protobuf RPC rust definition file
 mod proto { include!("../../../libqaul/src/rpc/protobuf_generated/rust/qaul.rpc.filesharing.rs"); }
 
-/// feed module function handling
+/// FileShare module function handling
 pub struct FileShare {}
 
 impl FileShare {
     /// CLI command interpretation
     /// 
-    /// The CLI commands of feed module are processed here
+    /// The CLI commands of FileShare module are processed here
     pub fn cli(command: &str) {
         match command {
             // send file
@@ -35,7 +35,7 @@ impl FileShare {
                                     _ =>{ "".to_string()}
                                 };
 
-                                log::error!("send file peerid= {}, file={}, descr={}", conversation_id_str, file_path_name, descr);
+                                log::info!("send file peerid= {}, file={}, descr={}", conversation_id_str, file_path_name, descr);
 
                                 Self::send_file(conversation_id, file_path_name.to_string(), descr);
                             }else{
@@ -53,7 +53,7 @@ impl FileShare {
                 }
             },
 
-            // request feed list
+            // request fileShare history list
             cmd if cmd.starts_with("history ") => {
                 let command_string = cmd.strip_prefix("history ").unwrap().to_string();
                 let mut iter = command_string.split_whitespace();
@@ -113,7 +113,7 @@ impl FileShare {
         Rpc::send_message(buf, super::rpc::proto::Modules::Fileshare.into(), "".to_string());
     }
 
-    /// send file list command via rpc
+    /// send file history list command via rpc
     fn send_file_history_commnad(offset: u32, limit: u32){
         // create feed send message
         let proto_message = proto::FileSharing {
@@ -136,7 +136,7 @@ impl FileShare {
     /// Process received RPC message
     /// 
     /// Decodes received protobuf encoded binary RPC message
-    /// of the feed module.
+    /// of the file share module.
     pub fn rpc(data: Vec<u8>) {
         match proto::FileSharing::decode(&data[..]) {
             Ok(file_share) => {

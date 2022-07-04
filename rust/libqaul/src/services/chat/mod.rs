@@ -120,6 +120,7 @@ impl Chat {
         true
     }
 
+    /// Save incoming chat message
     pub fn save_incoming_chat_message(user_id: PeerId, sender_id: PeerId, message: proto::ChatMessage, signature: Vec<u8>)-> bool {
         let contents = rpc_proto::ChatMessageContent{
             content: Some(
@@ -131,6 +132,7 @@ impl Chat {
         Self::save_incoming_message(user_id, sender_id, contents.encode_to_vec(),  message.sent_at, signature, 2)
     }
 
+    /// Save received file message
     pub fn save_incoming_file_message(user_id: PeerId, sender_id: PeerId, file_name: String, file_size: u32, history_index: u64, file_id: u64, file_descr: String)-> bool{
         let contents = rpc_proto::ChatMessageContent{
             content: Some(
@@ -236,7 +238,7 @@ impl Chat {
     }
     
 
-    // save an outgoing message to the data base
+    // save an outgoing chat message to the data base
     fn save_outgoing_chat_message(user_id: PeerId, conversation_id: Vec<u8>, content: String, signature: Vec<u8>) {
         let contents = rpc_proto::ChatMessageContent{
             content: Some(
@@ -248,7 +250,7 @@ impl Chat {
         Self::save_outgoing_message(user_id, conversation_id, contents.encode_to_vec(), signature, 0)
     }
 
-    // save an outgoing message to the data base
+    // save a sent file message to the data base
     pub fn save_outgoing_file_message(user_id: PeerId, conversation_id: Vec<u8>, file_name: String, file_size: u32, history_index: u64, file_id: u64, file_descr: String) {
         let contents = rpc_proto::ChatMessageContent{
             content: Some(
@@ -266,6 +268,7 @@ impl Chat {
         Self::save_outgoing_message(user_id, conversation_id, contents.encode_to_vec(), vec![], 1);
     }
 
+    /// updating chat messge status as confirmed
     pub fn update_confirmation(user_id: PeerId, message_id: Vec<u8>, received_at: u64){
         // get data base of user account
         let db_ref = Self::get_user_db_ref(user_id);

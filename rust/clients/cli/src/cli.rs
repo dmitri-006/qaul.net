@@ -59,7 +59,7 @@ impl Cli {
             cmd if cmd.starts_with("debug ") => {
                 Debug::cli(cmd.strip_prefix("debug ").unwrap());
             },
-            // debugging functions
+            // file sharing functions
             cmd if cmd.starts_with("file ") => {
                 FileShare::cli(cmd.strip_prefix("file ").unwrap());
             },

@@ -62,14 +62,22 @@ pub struct UserFiles {
 // /// File history structure, this structure is stored into DB
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FileHistory {
+    // peer user id 
     pub peer_id: Vec<u8>,
+    //file id
     pub id: u64,
+    //file name
     pub name: String,
+    //file description
     pub descr: String,
+    //file extension
     pub extension: String,
+    //file size in bytes
     pub size: u32,
+    //file sent or received time
     pub time: u64,
-    pub sent: bool, // false=> received, true=> sent
+    // false=> received, true=> sent
+    pub sent: bool, 
 }
 
 /// mutable state of all file
@@ -88,16 +96,27 @@ pub const DEF_PACKAGE_SIZE: u32 = 1000;
 /// File Sharing information to management file transfering 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FileShareInfo {
+    //sender user id
     pub sender_id: Vec<u8>,
+    //recevier user id
     pub receiver_id: Vec<u8>,
+    //file size
     pub size: u32,
+    //file information message sent status
     pub sent_info: bool,
+    //file package messages status
     pub pkg_sent: Vec<u8>,
+    //last file data package size
     pub last_pkg_size: u32,
+    //file name
     pub name: String,
+    //file description
     pub descr: String,
+    //file extension
     pub extension: String,
+    //file identifier
     pub id: u64, 
+    //file trasnfering/receiving start time
     pub start_time: u64,
 }
 impl FileShareInfo{
@@ -122,22 +141,6 @@ impl FileShareInfo{
         }
         true
     }    
-
-    //// This function presents current trasfering or receving progress.
-    // pub fn bytes_sent(&self) -> u32{
-    //     let mut sent_bytes = 0;
-    //     for i in 0..self.pkg_sent.len(){
-    //         if *self.pkg_sent.get(i).unwrap() > 0{
-    //             if i == self.pkg_sent.len() - 1{
-    //                 sent_bytes += self.last_pkg_size;
-    //             }else{
-    //                 sent_bytes += DEF_PACKAGE_SIZE;
-    //             }
-    //         }
-    //     }
-    //     sent_bytes
-    // }
-
 }
 
 
@@ -792,8 +795,6 @@ impl FileShare {
     
     /// OnReceive file messae procedure.
     pub fn on_receive_message(sender_id: PeerId, receiver_id: PeerId, data: Vec<u8>){
-        log::error!("file::on_receive_message");
-
         //check receiver id is in users list
         let user;
         match UserAccounts::get_by_id(receiver_id){
@@ -810,27 +811,27 @@ impl FileShare {
             Ok(messaging) =>{
                 match messaging.message{
                     Some(proto_net::file_sharing_container::Message::FileInfo(file_info)) => {
-                        log::error!("file::on_receive_file_info");
+                        log::info!("file::on_receive_file_info");
                         Self::on_receive_file_info(&user, sender_id, receiver_id, &file_info);
                     },
                     Some(proto_net::file_sharing_container::Message::FileData(file_data)) => {
-                        log::error!("file::on_receive_file_data seq={}", file_data.sequence);
+                        log::info!("file::on_receive_file_data seq={}", file_data.sequence);
                         Self::on_receive_file_data(&user, sender_id, receiver_id, &file_data);
                     },
                     Some(proto_net::file_sharing_container::Message::Confirmation(confirmation)) => {
-                        log::error!("file::on_receive_confirmation_file_data seq={}", confirmation.sequence);
+                        log::info!("file::on_receive_confirmation_file_data seq={}", confirmation.sequence);
                         Self::on_receive_confirmation_file_data(&user, sender_id, receiver_id, &confirmation);
                     },
                     Some(proto_net::file_sharing_container::Message::ConfirmationInfo(confirmation)) => {
-                        log::error!("file::on_receive_confirmation_file_info");
+                        log::info!("file::on_receive_confirmation_file_info");
                         Self::on_receive_confirmation_file_info(&user, sender_id, receiver_id, &confirmation);
                     },
                     Some(proto_net::file_sharing_container::Message::Completed(completed)) => {
-                        log::error!("file::on_completed");
+                        log::info!("file::on_completed");
                         Self::on_receive_completed(&user, sender_id, receiver_id, &completed);
                     },
                     Some(proto_net::file_sharing_container::Message::Canceled(canceled)) => {
-                        log::error!("file::on_canceled");
+                        log::info!("file::on_canceled");
                         Self::on_receive_canceled(&user, sender_id, receiver_id, &canceled);
                     },
                     None => {
@@ -848,8 +849,6 @@ impl FileShare {
     /// Process incoming RPC request messages for file sharing module
     pub fn rpc(data: Vec<u8>, user_id: Vec<u8>) {
         let my_user_id = PeerId::from_bytes(&user_id).unwrap();
-
-        log::error!("lib->file->rpc");
 
         match proto_rpc::FileSharing::decode(&data[..]) {
             Ok(filesharing) => {
