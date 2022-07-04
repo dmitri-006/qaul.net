@@ -30,6 +30,7 @@ use crate::storage::database::DataBase;
 use crate::utilities::timestamp;
 use super::chat::Chat;
 
+use std::fs;
 use std::fs::File;
 use std::path::Path;
 use std::ffi::OsStr;
@@ -43,19 +44,22 @@ use super::messaging::Messaging;
 pub mod proto_rpc { include!("qaul.rpc.filesharing.rs"); }
 pub mod proto_net { include!("qaul.net.filesharing.rs"); }
 
+// /// Structure to management for file histories based on the each user_id.
 pub struct AllFiles{
     pub db_ref: BTreeMap< Vec<u8>, UserFiles>,
 }
 
+// /// User file histories structure
 #[derive(Clone)]
 pub struct UserFiles {
     // in memory BTreeMap
     pub histories: Tree<FileHistory>,
 
-    // last recent message    
+    // last file index
     pub last_file: u64,
 }
 
+// /// File history structure, this structure is stored into DB
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FileHistory {
     pub peer_id: Vec<u8>,
@@ -68,7 +72,7 @@ pub struct FileHistory {
     pub sent: bool, // false=> received, true=> sent
 }
 
-/// mutable state of feed messages
+/// mutable state of all file
 static ALLFILES: Storage<RwLock<AllFiles>> = Storage::new();
 
 
@@ -81,7 +85,7 @@ static FILERECEIVE: Storage<RwLock<FileShareReceive>> = Storage::new();
 //pub const DEF_PACKAGE_SIZE: u32 = 64000; 
 pub const DEF_PACKAGE_SIZE: u32 = 1000;
 
-// /// For storing on the local storage
+/// File Sharing information to management file transfering 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FileShareInfo {
     pub sender_id: Vec<u8>,
@@ -158,8 +162,7 @@ pub struct FileShareReceive{
     pub files: BTreeMap<u64, FileShareInfoReceving>,
 }
 
-
-
+// ///File sharing module to process transfer, receive and RPC commands
 impl FileShare {
     /// initialize fileshare module
     pub fn init() {
@@ -370,7 +373,15 @@ impl FileShare {
             return Ok(sned_file_req.conversation_id);
         }
 
-        let mut file: File = File::open(sned_file_req.path_name.clone()).unwrap();
+        let mut file: File;
+
+        match File::open(sned_file_req.path_name.clone()){
+            Ok(f) => {Some(file = f)},
+            Err(_e) => {
+                return Err("file open error".to_string());
+            }
+        };
+
         let size = file.metadata().unwrap().len() as u32;
         if size ==0 {
             return Err("file size is zero".to_string());
@@ -527,16 +538,29 @@ impl FileShare {
             return false;
         }
 
-        //write all contents into real file
-        let mut path = "./files/".to_string();
-        path.push_str(file_receive.info.id.to_string().as_str());
+        //check directory
+        let path = std::env::current_dir().unwrap(); 
+        let mut path_fies = path.as_path().to_str().unwrap().to_string();
+        if path_fies.chars().last().unwrap() != '/'{
+            path_fies.push_str("/");
+        }
+        path_fies.push_str(bs58::encode(file_receive.info.receiver_id.clone()).into_string().as_str());
+        path_fies.push_str("/files/");
+
+        if let Err(e) = fs::create_dir_all(path_fies.clone()) {
+            log::error!("creating folder error {}", e.to_string());
+        }
+        
+        //write all contents into real file        
+        //let mut path = "./files/".to_string();
+        path_fies.push_str(file_receive.info.id.to_string().as_str());
         if file_receive.info.extension.len() > 0{
-            path.push_str(".");
-            path.push_str(&file_receive.info.extension.as_str());
+            path_fies.push_str(".");
+            path_fies.push_str(&file_receive.info.extension.as_str());
         }
 
-        log::info!("storing file {}", path);
-        let mut file: File = File::create(path.clone()).unwrap();
+        log::info!("storing file {}", path_fies.clone());
+        let mut file: File = File::create(path_fies.clone()).unwrap();
 
         for i in 0..file_receive.info.pkg_sent.len(){
             let key:u32 = i as u32;
