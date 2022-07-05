@@ -1,3 +1,4 @@
+/// Filesharing service network message container
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileSharingContainer {
     #[prost(oneof="file_sharing_container::Message", tags="1, 2, 3, 4, 5, 6")]
@@ -43,6 +44,7 @@ pub struct FileSharingInfo {
     #[prost(uint64, tag="6")]
     pub file_id: u64,
 }
+/// FileSharing Data Message
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileSharingData {
     /// file id
@@ -61,12 +63,14 @@ pub struct FileSharingData {
     #[prost(bytes="vec", tag="6")]
     pub data: ::prost::alloc::vec::Vec<u8>,
 }
+/// File Sharing Confirmation File Info Message
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileSharingConfirmationFileInfo {
     /// file id
     #[prost(uint64, tag="1")]
     pub file_id: u64,
 }
+/// File Sharing Confirmation Message
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileSharingConfirmation {
     /// file id
@@ -76,12 +80,14 @@ pub struct FileSharingConfirmation {
     #[prost(uint32, tag="2")]
     pub sequence: u32,
 }
+/// File Sharing Completed Message
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileSharingCompleted {
     /// file id
     #[prost(uint64, tag="1")]
     pub file_id: u64,
 }
+/// File Sharing Cancled Message
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileSharingCanceled {
     /// file id

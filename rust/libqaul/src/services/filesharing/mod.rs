@@ -44,39 +44,39 @@ use super::messaging::Messaging;
 pub mod proto_rpc { include!("qaul.rpc.filesharing.rs"); }
 pub mod proto_net { include!("qaul.net.filesharing.rs"); }
 
-// /// Structure to management for file histories based on the each user_id.
+/// Structure to management for file histories based on the each user_id.
 pub struct AllFiles{
     pub db_ref: BTreeMap< Vec<u8>, UserFiles>,
 }
 
-// /// User file histories structure
+/// User file histories structure
 #[derive(Clone)]
 pub struct UserFiles {
-    // in memory BTreeMap
+    /// in memory BTreeMap
     pub histories: Tree<FileHistory>,
 
-    // last file index
+    /// last file index
     pub last_file: u64,
 }
 
-// /// File history structure, this structure is stored into DB
+/// File history structure, this structure is stored into DB
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FileHistory {
-    // peer user id 
+    /// peer user id 
     pub peer_id: Vec<u8>,
-    //file id
+    /// file id
     pub id: u64,
-    //file name
+    /// file name
     pub name: String,
-    //file description
+    /// file description
     pub descr: String,
-    //file extension
+    /// file extension
     pub extension: String,
-    //file size in bytes
+    /// file size in bytes
     pub size: u32,
-    //file sent or received time
+    /// file sent or received time
     pub time: u64,
-    // false=> received, true=> sent
+    /// false=> received, true=> sent
     pub sent: bool, 
 }
 
@@ -84,41 +84,42 @@ pub struct FileHistory {
 static ALLFILES: Storage<RwLock<AllFiles>> = Storage::new();
 
 
-// /// mutable state for sending files
+/// mutable state for sending files
 static FILESHARE: Storage<RwLock<FileShare>> = Storage::new();
 
-// /// mutable state for receiving files
+/// mutable state for receiving files
 static FILERECEIVE: Storage<RwLock<FileShareReceive>> = Storage::new();
 
-//pub const DEF_PACKAGE_SIZE: u32 = 64000; 
+/// pub const DEF_PACKAGE_SIZE: u32 = 64000; 
 pub const DEF_PACKAGE_SIZE: u32 = 1000;
 
 /// File Sharing information to management file transfering 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FileShareInfo {
-    //sender user id
+    /// sender user id
     pub sender_id: Vec<u8>,
-    //recevier user id
+    /// recevier user id
     pub receiver_id: Vec<u8>,
-    //file size
+    /// file size
     pub size: u32,
-    //file information message sent status
+    /// file information message sent status
     pub sent_info: bool,
-    //file package messages status
+    /// file package messages status
     pub pkg_sent: Vec<u8>,
-    //last file data package size
+    /// last file data package size
     pub last_pkg_size: u32,
-    //file name
+    /// file name
     pub name: String,
-    //file description
+    /// file description
     pub descr: String,
-    //file extension
+    /// file extension
     pub extension: String,
-    //file identifier
+    /// file identifier
     pub id: u64, 
-    //file trasnfering/receiving start time
+    /// file trasnfering/receiving start time
     pub start_time: u64,
 }
+
 impl FileShareInfo{
     pub fn package_count_calc(size: u32, def_size: u32) -> u32{
         let mut count = size/def_size;
@@ -144,28 +145,28 @@ impl FileShareInfo{
 }
 
 
-// /// For storing in data base
+/// For storing in data base
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FileShare{
     pub files: BTreeMap<u64, FileShareInfo>,
 }
 
-// /// For storing on the local storage receiving state
+/// For storing on the local storage receiving state
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FileShareInfoReceving {
     pub info: FileShareInfo,
 
-    //package_seq => data
+    /// package_seq => data
     pub packages: BTreeMap<u32, Vec<u8>>,
 }
 
-// /// For storing in data base
+/// For storing in data base
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FileShareReceive{
     pub files: BTreeMap<u64, FileShareInfoReceving>,
 }
 
-// ///File sharing module to process transfer, receive and RPC commands
+/// File sharing module to process transfer, receive and RPC commands
 impl FileShare {
     /// initialize fileshare module
     pub fn init() {
@@ -541,7 +542,7 @@ impl FileShare {
             return false;
         }
 
-        //check directory
+        // check directory
         let path = std::env::current_dir().unwrap(); 
         let mut path_fies = path.as_path().to_str().unwrap().to_string();
         if path_fies.chars().last().unwrap() != '/'{
@@ -554,8 +555,8 @@ impl FileShare {
             log::error!("creating folder error {}", e.to_string());
         }
         
-        //write all contents into real file        
-        //let mut path = "./files/".to_string();
+        // write all contents into real file        
+        // let mut path = "./files/".to_string();
         path_fies.push_str(file_receive.info.id.to_string().as_str());
         if file_receive.info.extension.len() > 0{
             path_fies.push_str(".");
@@ -596,13 +597,13 @@ impl FileShare {
             file_receive.info.descr = file_info.file_descr.clone();
 
             if Self::check_complete_and_store(&file_receive){
-                //store into database
+                // store into database
                 Self::on_completed(&receiver_id, &sender_id, &file_receive.info, false);
 
-                //remove entry
+                // remove entry
                 file_receiver.files.remove(&file_info.file_id);
 
-                //send complete message                
+                // send complete message                
                 let completed = proto_net::FileSharingContainer{
                     message: Some(proto_net::file_sharing_container::Message::Completed(
                         proto_net::FileSharingCompleted {
@@ -637,7 +638,7 @@ impl FileShare {
             file_receiver.files.insert(file_info.file_id, file_receive_info);    
         }
         
-        //send fileinfo confirm message
+        // send fileinfo confirm message
         let confim = proto_net::FileSharingContainer{
             message: Some(proto_net::file_sharing_container::Message::ConfirmationInfo(
                 proto_net::FileSharingConfirmationFileInfo {

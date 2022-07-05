@@ -1,6 +1,7 @@
 syntax = "proto3";
 package qaul.net.filesharing;
 
+// Filesharing service network message container
 message FileSharingContainer {
     oneof message {
         FileSharingInfo file_info = 1;
@@ -32,6 +33,7 @@ message FileSharingInfo {
     uint64  file_id = 6;
 }
 
+// FileSharing Data Message
 message FileSharingData{    
     // file id
     uint64  file_id = 1;
@@ -47,11 +49,13 @@ message FileSharingData{
     bytes data = 6;
 }
 
+// File Sharing Confirmation File Info Message
 message FileSharingConfirmationFileInfo{
     // file id
     uint64  file_id = 1;
 }
 
+// File Sharing Confirmation Message
 message FileSharingConfirmation{    
     // file id
     uint64  file_id = 1;
@@ -59,11 +63,13 @@ message FileSharingConfirmation{
     uint32 sequence = 2;
 }
 
+// File Sharing Completed Message
 message FileSharingCompleted{
     // file id
     uint64  file_id = 1;
 }
 
+// File Sharing Cancled Message
 message FileSharingCanceled{
     // file id
     uint64  file_id = 1;

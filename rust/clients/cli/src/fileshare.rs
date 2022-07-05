@@ -94,7 +94,7 @@ impl FileShare {
 
     /// send file via rpc
     fn send_file(conversation_id: Vec<u8>, file_name: String, description:String) {
-        // create feed send message
+        // create file send message
         let proto_message = proto::FileSharing {
             message: Some(proto::file_sharing::Message::SendFileRequest(
                 proto::SendFileRequest{
@@ -115,7 +115,7 @@ impl FileShare {
 
     /// send file history list command via rpc
     fn send_file_history_commnad(offset: u32, limit: u32){
-        // create feed send message
+        // create file history message
         let proto_message = proto::FileSharing {
             message: Some(proto::file_sharing::Message::FileHistory(
                 proto::FileHistoryRequest{

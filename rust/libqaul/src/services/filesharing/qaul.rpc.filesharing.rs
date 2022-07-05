@@ -1,3 +1,4 @@
+/// File sharing service RPC message container
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileSharing {
     /// message type
@@ -20,6 +21,7 @@ pub mod file_sharing {
         FileHistoryResponse(super::FileHistoryResponse),
     }
 }
+/// Send File Request
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SendFileRequest {
     /// file path name to send
@@ -32,54 +34,57 @@ pub struct SendFileRequest {
     #[prost(string, tag="3")]
     pub description: ::prost::alloc::string::String,
 }
+/// File History Request
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileHistoryRequest {
-    ///offset
+    /// offset
     #[prost(uint32, tag="1")]
     pub offset: u32,
-    ///limit
+    /// limit
     #[prost(uint32, tag="2")]
     pub limit: u32,
 }
+/// File History Entry
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileHistoryEntry {
-    ///file id
+    /// file id
     #[prost(uint64, tag="1")]
     pub file_id: u64,
-    ///file name
+    /// file name
     #[prost(string, tag="2")]
     pub file_name: ::prost::alloc::string::String,
-    ///file extension
+    /// file extension
     #[prost(string, tag="3")]
     pub file_ext: ::prost::alloc::string::String,
-    ///file size
+    /// file size
     #[prost(uint32, tag="4")]
     pub file_size: u32,
-    ///file description
+    /// file description
     #[prost(string, tag="5")]
     pub file_descr: ::prost::alloc::string::String,
-    ///time
+    /// time
     #[prost(uint64, tag="6")]
     pub time: u64,
-    ///sent/recv
+    /// sent/recv
     #[prost(bool, tag="7")]
     pub sent: bool,
-    ///peer id
+    /// peer id
     #[prost(string, tag="8")]
     pub peer_id: ::prost::alloc::string::String,
 }
+/// File History Response
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct FileHistoryResponse {
-    ///offset
+    /// offset
     #[prost(uint32, tag="1")]
     pub offset: u32,
-    ///limit
+    /// limit
     #[prost(uint32, tag="2")]
     pub limit: u32,
-    ///limit
+    /// limit
     #[prost(uint64, tag="3")]
     pub total: u64,
-    ///histories
+    /// histories
     #[prost(message, repeated, tag="4")]
     pub histories: ::prost::alloc::vec::Vec<FileHistoryEntry>,
 }
