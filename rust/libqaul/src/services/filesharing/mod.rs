@@ -408,6 +408,28 @@ impl FileShare {
             size, timestamp::Timestamp::get_timestamp());
         let file_id = crc::crc64::checksum_iso(&key_bytes);
 
+        //copy file in files folder
+        let path = std::env::current_dir().unwrap(); 
+        let mut path_fies = path.as_path().to_str().unwrap().to_string();
+        if path_fies.chars().last().unwrap() != '/'{
+            path_fies.push_str("/");
+        }
+        path_fies.push_str(user_account.id.to_base58().as_str());
+        path_fies.push_str("/files/");
+
+        if let Err(e) = fs::create_dir_all(path_fies.clone()) {
+            log::error!("creating folder error {}", e.to_string());
+        }
+        //copy file
+        path_fies.push_str(file_id.to_string().as_str());
+        if extension.len() > 0{
+            path_fies.push_str(".");
+            path_fies.push_str(&extension.clone().as_str());
+        }
+        if let Err(e) = fs::copy(sned_file_req.path_name.clone(), path_fies){
+            log::error!("copy file error {}", e.to_string());            
+        }
+
         //create file descriptor and save in storage
         let mut file_info = Self::create_file_share_info(
             &user_account.id.to_bytes(), 
