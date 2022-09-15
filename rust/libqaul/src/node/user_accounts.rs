@@ -74,7 +74,6 @@ impl UserAccounts {
                 keys: keys.clone(),
             });
         }
-
         // save users to state
         USERACCOUNTS.set(RwLock::new(accounts));
     }

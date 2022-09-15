@@ -16,6 +16,8 @@ use futures::{future::FutureExt, pin_mut, select};
 use futures_ticker::Ticker;
 use state::Storage;
 use std::collections::BTreeMap;
+use std::env;
+use std::ffi::OsStr;
 use std::fs::File;
 use std::path::Path;
 use std::time::Duration;
@@ -71,6 +73,24 @@ enum EventType {
     RoutingTable(bool),
     Messaging(bool),
     Retransmit(bool),
+}
+
+fn prog() -> Option<String> {
+    env::args()
+        .next()
+        .as_ref()
+        .map(Path::new)
+        .and_then(Path::file_name)
+        .and_then(OsStr::to_str)
+        .map(String::from)
+}
+
+pub fn is_process_cli() -> bool {
+    //if prog().unwrap() == "qaul-cli" {
+    if prog().unwrap() == "qauld" {
+        return true;
+    }
+    false
 }
 
 /// initialize and start libqaul
@@ -199,12 +219,16 @@ pub async fn start(storage_path: String) -> () {
     }
 
     log::error!("test log to ensure that logging is working");
+    log::error!("process: {}", prog().unwrap());
 
     // initialize node & user accounts
     Node::init();
 
     // initialize router
     Router::init();
+
+    // initialize default user account
+    Node::init1();
 
     // initialize Connection Modules
     let conn = Connections::init().await;
