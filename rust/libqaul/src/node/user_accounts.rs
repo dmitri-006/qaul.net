@@ -127,8 +127,12 @@ impl UserAccounts {
         // check users , if there is no user, we create default user
         if UserAccounts::len() == 0 {
             let mut user_name: String;
-            user_name = "Community Server ".to_string();
-            user_name.push_str(Timestamp::get_timestamp().to_string().as_str());
+            if let Some(name) = super::super::get_argument("name") {
+                user_name = name.clone();
+            } else {
+                user_name = "Community Server ".to_string();
+                user_name.push_str(Timestamp::get_timestamp().to_string().as_str());
+            }
             log::info!("create new user: {}", user_name);
             UserAccounts::create(user_name.clone());
         }

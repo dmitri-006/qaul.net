@@ -31,6 +31,7 @@ pub mod storage;
 mod types;
 pub mod utilities;
 
+use clap::{App, Arg};
 use connections::{ble::Ble, internet::Internet, ConnectionModule, Connections};
 use node::{user_accounts::UserAccounts, Node};
 use router::{
@@ -69,6 +70,32 @@ enum EventType {
     RoutingTable(bool),
     Messaging(bool),
     Retransmit(bool),
+}
+
+/// get command line arguments
+pub fn get_argument(pattern: &str) -> Option<String> {
+    let matches = App::new("")
+        .arg(
+            Arg::with_name("name")
+                .short('n')
+                .long("name")
+                .takes_value(true)
+                .help("user name"),
+        )
+        .arg(
+            Arg::with_name("port")
+                .short('p')
+                .long("port")
+                .takes_value(true)
+                .help("port number"),
+        )
+        .get_matches();
+
+    if let Some(v) = matches.value_of(pattern) {
+        Some(v.to_string())
+    } else {
+        None
+    }
 }
 
 /// initialize and start libqaul
