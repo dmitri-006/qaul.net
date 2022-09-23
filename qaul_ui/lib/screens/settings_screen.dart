@@ -6,7 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:qaul_rpc/qaul_rpc.dart';
 import 'package:utils/utils.dart';
 
-import '../decorators/loading_decorator.dart';
+import '../decorators/cron_task_decorator.dart';
 import '../helpers/user_prefs_helper.dart';
 import '../widgets/widgets.dart';
 
@@ -107,50 +107,46 @@ class _InternetNodesList extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nodes = ref.watch(connectedNodesProvider);
-    final loading = useState(true);
-    final isMounted = useIsMounted();
 
-    final removeNode = useCallback((String nodeAddress) async {
-      loading.value = true;
+    final removeNode = useCallback((String nodeAddress) {
       final worker = ref.read(qaulWorkerProvider);
-      await worker.removeNode(nodeAddress);
-      if (!isMounted()) return;
-      loading.value = false;
-    }, [UniqueKey()]);
+      worker.removeNode(nodeAddress);
+    }, []);
 
-    final addNode = useCallback((String nodeAddress) async {
-      loading.value = true;
+    final addNode = useCallback((String nodeAddress) {
       final worker = ref.read(qaulWorkerProvider);
-      await worker.addNode(nodeAddress);
-      if (!isMounted()) return;
-      loading.value = false;
-    }, [UniqueKey()]);
+      worker.addNode(nodeAddress);
+    }, []);
 
-    useMemoized(() async {
+    final setNodeState = useCallback((String address, bool value) {
+      final worker = ref.read(qaulWorkerProvider);
+      worker.setNodeState(address, active: value);
+    }, []);
+
+    final refreshNodes = useCallback(() async {
       final worker = ref.read(qaulWorkerProvider);
       await worker.requestNodes();
-      loading.value = false;
-    });
+    }, []);
 
     final l18ns = AppLocalizations.of(context);
-    return Column(
-      children: [
-        Row(
-          children: [
-            const Icon(CupertinoIcons.globe),
-            const SizedBox(width: 8.0),
-            Text(l18ns!.internetNodes),
-          ],
-        ),
-        const SizedBox(height: 8.0),
-        LoadingDecorator(
-          isLoading: loading.value,
-          backgroundColor: Colors.transparent,
-          child: Container(
+    return CronTaskDecorator(
+      callback: refreshNodes,
+      schedule: const Duration(milliseconds: 1000),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(CupertinoIcons.globe),
+              const SizedBox(width: 8.0),
+              Text(l18ns!.internetNodes),
+            ],
+          ),
+          const SizedBox(height: 8.0),
+          Container(
             padding: const EdgeInsets.symmetric(vertical: 4),
             decoration: BoxDecoration(
               border: Border.symmetric(
-                  horizontal: loading.value || nodes.isEmpty
+                  horizontal:nodes.isEmpty
                       ? BorderSide.none
                       : BorderSide(color: Theme.of(context).dividerColor)),
             ),
@@ -162,18 +158,28 @@ class _InternetNodesList extends HookConsumerWidget {
                     itemCount: nodes.length,
                     separatorBuilder: (_, __) => const Divider(height: 12.0),
                     itemBuilder: (context, i) {
-                      var nodeAddr = nodes[i].address;
+                      var node = nodes[i];
+                      var nodeAddr = node.address;
                       return ListTile(
                         contentPadding: const EdgeInsets.all(4.0),
                         title: Text(
                           nodeAddr,
                           style: Theme.of(context).textTheme.subtitle2,
                         ),
-                        trailing: IconButton(
-                          splashRadius: 24,
-                          iconSize: 20,
-                          icon: const Icon(CupertinoIcons.delete),
-                          onPressed: () async => removeNode(nodeAddr),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PlatformAwareSwitch(
+                              value: node.isActive,
+                              onChanged: (val) => setNodeState(nodeAddr, val),
+                            ),
+                            IconButton(
+                              splashRadius: 24,
+                              iconSize: 20,
+                              icon: const Icon(CupertinoIcons.delete),
+                              onPressed: () async => removeNode(nodeAddr),
+                            ),
+                          ],
                         ),
                         onTap: () async {
                           final ip = nodeAddr.replaceAll('/ip4/', '').split('/').first;
@@ -191,26 +197,26 @@ class _InternetNodesList extends HookConsumerWidget {
                     },
                   ),
           ),
-        ),
-        const SizedBox(height: 12.0),
-        Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.add),
-              splashRadius: 24,
-              onPressed: () async {
-                final res = await showDialog(context: context, builder: (_) => _AddNodeDialog());
+          const SizedBox(height: 12.0),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                splashRadius: 24,
+                onPressed: () async {
+                  final res = await showDialog(context: context, builder: (_) => _AddNodeDialog());
 
-                if (res is! String) return;
+                  if (res is! String) return;
 
-                addNode(res);
-              },
-            ),
-            const SizedBox(width: 12.0),
-            Text(l18ns.addNodeCTA),
-          ],
-        ),
-      ],
+                  addNode(res);
+                },
+              ),
+              const SizedBox(width: 12.0),
+              Text(l18ns.addNodeCTA),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

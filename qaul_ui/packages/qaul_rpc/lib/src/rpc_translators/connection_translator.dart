@@ -13,7 +13,7 @@ class ConnectionTranslator extends RpcModuleTranslator {
         final nodes = message
             .ensureInternetNodesList()
             .nodes
-            .map((e) => InternetNode(e.address))
+            .map((e) => InternetNode(e.address, isActive: e.enabled))
             .toList();
         return RpcTranslatorResponse(Modules.CONNECTIONS, nodes);
       default:
