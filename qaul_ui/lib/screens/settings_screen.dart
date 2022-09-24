@@ -34,7 +34,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: MediaQuery.of(context).viewPadding.copyWith(left: 20, right: 20),
+          padding:
+              MediaQuery.of(context).viewPadding.copyWith(left: 20, right: 20),
           child: Column(
             children: [
               const LanguageSelectDropDown(),
@@ -98,7 +99,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   bool get _notificationsAreEnabled =>
-      UserPrefsHelper().chatNotificationsEnabled || UserPrefsHelper().feedNotificationsEnabled;
+      UserPrefsHelper().chatNotificationsEnabled ||
+      UserPrefsHelper().feedNotificationsEnabled;
 }
 
 class _InternetNodesList extends HookConsumerWidget {
@@ -146,7 +148,7 @@ class _InternetNodesList extends HookConsumerWidget {
             padding: const EdgeInsets.symmetric(vertical: 4),
             decoration: BoxDecoration(
               border: Border.symmetric(
-                  horizontal:nodes.isEmpty
+                  horizontal: nodes.isEmpty
                       ? BorderSide.none
                       : BorderSide(color: Theme.of(context).dividerColor)),
             ),
@@ -182,11 +184,13 @@ class _InternetNodesList extends HookConsumerWidget {
                           ],
                         ),
                         onTap: () async {
-                          final ip = nodeAddr.replaceAll('/ip4/', '').split('/').first;
+                          final ip =
+                              nodeAddr.replaceAll('/ip4/', '').split('/').first;
                           final port = nodeAddr.split('/').last;
                           final res = await showDialog(
                             context: context,
-                            builder: (_) => _AddNodeDialog(ip: ip, port: port),
+                            builder: (_) =>
+                                _AddIPv4NodeDialog(ip: ip, port: port),
                           );
 
                           if (res is! String) return;
@@ -204,7 +208,8 @@ class _InternetNodesList extends HookConsumerWidget {
                 icon: const Icon(Icons.add),
                 splashRadius: 24,
                 onPressed: () async {
-                  final res = await showDialog(context: context, builder: (_) => _AddNodeDialog());
+                  final res = await showDialog(
+                      context: context, builder: (_) => _AddIPv4NodeDialog());
 
                   if (res is! String) return;
 
@@ -212,7 +217,27 @@ class _InternetNodesList extends HookConsumerWidget {
                 },
               ),
               const SizedBox(width: 12.0),
-              Text(l18ns.addNodeCTA),
+              const Text('Add IPv4 Node'),
+
+            ],
+          ),
+          const SizedBox(height: 12.0),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                splashRadius: 24,
+                onPressed: () async {
+                  final res = await showDialog(
+                      context: context, builder: (_) => _AddIPv6NodeDialog());
+
+                  if (res is! String) return;
+
+                  addNode(res);
+                },
+              ),
+              const SizedBox(width: 12.0),
+              const Text('Add IPv6 Node'),
             ],
           ),
         ],
@@ -221,8 +246,8 @@ class _InternetNodesList extends HookConsumerWidget {
   }
 }
 
-class _AddNodeDialog extends HookWidget {
-  _AddNodeDialog({
+class _AddIPv4NodeDialog extends HookWidget {
+  _AddIPv4NodeDialog({
     Key? key,
     this.ip,
     this.port,
@@ -258,7 +283,8 @@ class _AddNodeDialog extends HookWidget {
     ];
 
     return AlertDialog(
-      title: orientation == Orientation.landscape ? null : Text(l18ns.addNodeCTA),
+      title:
+          orientation == Orientation.landscape ? null : Text(l18ns.addNodeCTA),
       content: Form(
         key: _formKey,
         child: Column(
@@ -313,8 +339,64 @@ class _AddNodeDialog extends HookWidget {
 
   SizedBox get _spacer => const SizedBox(width: 4, height: 4);
 
-  TextStyle get _fixedTextStyle =>
-      TextStyle(fontSize: 26, fontWeight: FontWeight.w500, color: Colors.grey.shade500);
+  TextStyle get _fixedTextStyle => TextStyle(
+      fontSize: 26, fontWeight: FontWeight.w500, color: Colors.grey.shade500);
+
+  InputDecoration _decoration(String label, {String? hint}) => InputDecoration(
+        isDense: true,
+        hintText: hint,
+        labelText: label,
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.all(12),
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+      );
+}
+
+class _AddIPv6NodeDialog extends HookWidget {
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  Widget build(BuildContext context) {
+    final ipCtrl = useTextEditingController();
+
+    final l18ns = AppLocalizations.of(context)!;
+    var orientation = MediaQuery.of(context).orientation;
+
+    return AlertDialog(
+      title:
+          orientation == Orientation.landscape ? null : Text(l18ns.addNodeCTA),
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          autofocus: true,
+          controller: ipCtrl,
+          inputFormatters: [IPv6TextInputFormatter()],
+          decoration: _decoration(
+            'ip',
+            hint: '0000:0000:0000:0000:0000:0000:0000:0000',
+          ),
+          validator: (val) {
+            if (isValidIPv6(val)) return null;
+            return l18ns.invalidIPMessage;
+          },
+          enableInteractiveSelection: false,
+        ),
+      ),
+      actions: [
+        TextButton(
+          child: Text(l18ns.okDialogButton),
+          onPressed: () {
+            if (!(_formKey.currentState?.validate() ?? false)) return;
+            Navigator.pop(context, ipCtrl.text);
+          },
+        ),
+        TextButton(
+          child: Text(l18ns.cancelDialogButton),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ],
+    );
+  }
 
   InputDecoration _decoration(String label, {String? hint}) => InputDecoration(
         isDense: true,
