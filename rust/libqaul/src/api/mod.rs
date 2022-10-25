@@ -142,25 +142,11 @@ pub fn receive_sys() -> Result<Vec<u8>, TryRecvError> {
 
 #[cfg(target_os = "android")]
 use android_logger::Config;
-use log::Level;
 use rifgen::rifgen_attr::*;
 
 struct AndroidBindings;
 
 impl AndroidBindings {
-    /// Set up logging
-    #[generate_interface]
-    pub fn initialise_logging() {
-        #[cfg(target_os = "android")]
-        android_logger::init_once(
-            Config::default()
-                .with_min_level(Level::Trace)
-                .with_tag("rust"),
-        );
-        log_panics::init();
-        log::error!("initialised");
-    }
-
     /// start libqaul for android
     /// here for debugging and testing
     ///
