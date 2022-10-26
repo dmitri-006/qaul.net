@@ -147,6 +147,12 @@ use rifgen::rifgen_attr::*;
 struct AndroidBindings;
 
 impl AndroidBindings {
+    /// Set up logging
+    #[generate_interface]
+    pub fn initialise_logging() {
+        println!("initilized libqual")
+    }
+
     /// start libqaul for android
     /// here for debugging and testing
     ///
