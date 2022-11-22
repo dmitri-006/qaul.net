@@ -1,9 +1,12 @@
 package net.qaul.libqaul
 
+import java.util.*
+
+
+
 /// hello message from lib qaul
 // dummy function for testing
 external fun hello(): String
-
 /// start libqaul
 /// this also intializes the logging
 external fun start(path: String)
@@ -34,6 +37,7 @@ external fun sysreceivequeue(): Int
 
 /// receive an SYS message from libqaul to BLE library
 external fun sysreceive(): ByteArray
+
 
 /// load rust libqaul shared library
 fun loadLibqaul() {
