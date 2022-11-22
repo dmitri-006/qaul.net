@@ -27,6 +27,9 @@ class MainActivity: FlutterActivity() {
 
         // load libqaul
         libqaulLoad()
+		
+		// initialize wrapper class
+		
 
         // setup message channel between flutter and android
         MethodChannel(FlutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
