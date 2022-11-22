@@ -17,6 +17,7 @@ import io.flutter.plugin.common.MethodChannel
 
 // import the libqaul AAR android library
 import net.qaul.libqaul.*
+import net.qaul.ble.core.BleWrapperClass
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "libqaul"
